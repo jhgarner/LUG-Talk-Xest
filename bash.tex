@@ -1,0 +1,355 @@
+\documentclass[10pt]{beamer}
+
+\usetheme[progressbar=frametitle]{metropolis}
+\usepackage{appendixnumberbeamer}
+\usepackage{svg}
+
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+
+\usepackage{pgfplots}
+\usepgfplotslibrary{dateplot}
+
+\usepackage{minted}
+
+\usepackage{xspace}
+\newcommand{\themename}{\textbf{\textsc{metropolis}}\xspace}
+
+\title{Xest: Writing a Window Manager in Haskell}
+\subtitle{}
+\date{\today}
+\author{Jack Garner}
+\institute{CSM LUG}
+% \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Table of contents}
+  \setbeamertemplate{section in toc}[sections numbered]
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+\section{X11}
+\subsection{Servers and Clients}
+
+\begin{frame}[fragile]{Servers}
+  A server draws and communicates events with clients.
+  \pause
+  Who is a server?
+  \begin{itemize}
+    \item Xorg
+    \item Xephyr
+    \item Xming
+    \item Cygwin
+    \item XQuartz
+    \item Xvfb
+  \end{itemize}
+  \pause
+\end{frame}
+
+\begin{frame}[fragile]{Clients}
+  What is a client?
+  \pause
+  \begin{itemize}
+    \item Firefox
+    \item Gnome-Terminal
+    \item Termite
+    \item Google Chrome
+    \item Steam
+    \item Borderlands 2
+  \end{itemize}
+  \pause
+  \begin{itemize}[<+->]
+    \item i3bar
+    \item Polybar
+    \item Cairo-dock
+    \item Compton
+    \item Kwin
+    \item Gnome
+    \item Plasma
+    \item i3
+  \end{itemize}
+  \pause
+  Almost everything is a client.
+  \pause
+  Server side decorations?
+  \pause
+  Xlib?
+\end{frame}
+\begin{frame}[fragile]{Wayland}
+  Lower Level protocol with better security, performance, and flexibility.
+
+  Represents the future of Linux desktops.
+
+  \pause
+  Much more complicated and relatively young.
+\end{frame}
+
+\section{Displays vs. Screens vs. Windows}
+
+\begin{frame}[fragile]{Displays}
+  \pause
+  Displays are not physical displays
+  \pause
+  :1 is the first/default display
+  \pause
+  One display can have multiple screens
+
+\end{frame}
+
+\begin{frame}[fragile]{Screens}
+  \pause
+  1 screen = 1 monitor
+  \begin{itemize}[<+->]
+    \item Can have different color settings, dpi, resolutions, etc.
+    \item Windows can never span more than one screen
+    \item Windows can't be moved from one screen to another
+    \item Each screen has its own graphics driver running
+    \item Each screen has 1 graphics card
+  \end{itemize}
+  \pause
+  (In the olden days)
+\end{frame}
+\begin{frame}[fragile]{Screens}
+  Enter Xinerama
+  \pause
+  Multiple graphics cards (and displays) = 1 screen
+  \begin{itemize}[<+->]
+    \item None of the screen limitations exist
+    \item Window Managers can use the Xinerama library to figure out the monitor
+      configuration
+    \item Every rendering action has to happen on all cards
+    \item Single threaded so slower than the worst card
+    \item No 3D acceleration
+    \item One DPI across all monitors
+  \end{itemize}
+  \pause
+  (Also old)
+\end{frame}
+\begin{frame}[fragile]{Screens}
+  What's left?
+  \pause
+  Nvidia TwinView
+  \pause
+  (Absolutely proprietary)
+  \pause
+  Enter Randr
+  \begin{itemize}[<+->]
+    \item Single screen (like Xinerama)
+    \item Provides tools for managing monitors in one screen
+    \item Uses the Xinerama interface for communication with clients
+    \item Multiple graphics cards?
+  \end{itemize}
+\end{frame}
+\pause
+\begin{frame}[fragile]{Screens}
+Enter Wayland
+\end{frame}
+
+\section{windows (Little w)}
+
+\begin{frame}{The Tree}
+  Windows are organized like a tree
+  \pause
+  Every X session has one window by default: The root window
+  \pause
+  New programs find the root window (using Xlib) then create themselves as
+  children
+  \pause
+  Any window can have children who will follow the parent and never leave its
+  bounds
+  \pause
+  \begin{itemize}
+    \item Buttons
+    \item Text Boxes
+    \item Etc.
+  \end{itemize}
+  \pause
+  Its like the Internet/DOM
+  \pause
+  (No one uses it like that anymore although toolkits like GTK still have
+  remnants of it)
+\end{frame}
+
+\begin{frame}{Callbacks}
+  Clients ask to be notified on certain events. Usually only one client can
+  get notified about events for one window.
+
+  Clients can have X commands redirected to them instead of the server.
+
+  \pause
+  Any program can request these events on any other window.
+
+  \pause
+  \begin{itemize}[<+->]
+    \item Mouse click
+    \item Keyboard click
+    \item Becoming visible
+    \item Being killed
+    \item Changes to child windows
+  \end{itemize}
+  \pause
+  The root window doesn't have any notifications or redirects at bootup...
+\end{frame}
+\begin{frame}{Properties}
+  Each window has properties (AKA a dictionary) associated with it.
+
+  \pause
+  The X11 standard makes no guarantees about what data will or will not be
+  stored.
+
+  \pause
+  ICCCM (Inter-Client Communication Conventions Manual)
+  \begin{itemize}
+    \item Clipboard
+    \item Window names
+    \item Geometry
+    \item Relationship to other windows
+    \item Polite focus capture
+  \end{itemize}
+  \pause
+  EWMH (Extended Window Manager Hints)
+  \begin{itemize}
+    \item Multiple Desktops
+    \item Pager information
+    \item Polite window movement
+    \item Type/State of window
+    \item Actions others can take on a window
+    \item Pinging/killing unresponsive windows
+  \end{itemize}
+\end{frame}
+
+\section{Tying it all Together}
+\begin{frame}{Program Flow}
+  \begin{itemize}
+    \item X server starts up
+    \item Xest starts up
+    \item Xest asks for SubstructureNotifyMask and SubstructureRedirectMask on
+      the root window
+    \item Xest Writes a bunch of properties to the root window
+    \item Google Chrome asks to made a child of the root window
+    \item Xest hears about it. Accepts/denies the request
+    \item Xest If accepted, Xest reparents the window
+    \item Xest updates its internal state
+    \item Xest issues move/resize/restack commands to the server
+    \item Xest Modifies/reads properties on the root/top level window
+  \end{itemize}
+\end{frame}
+
+\section{Haskell}
+\begin{frame}{A primer}
+  Python is...
+  \begin{itemize}
+    \item Dynamically typed
+    \item Scripting language
+    \item Emphasizes practicality
+    \item Provides the Pythonic way
+    \item Strict execution
+    \item Impure
+  \end{itemize}
+  Haskell is...
+  \begin{itemize}
+    \item Statically typed
+    \item Compiled language
+    \item Lots of theory (and weird names)
+    \item Provides a million ways to abstract something
+    \item Lazy evaluation
+    \item Pure
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Wrapping}
+  Haskell is all about putting information in the types and forcing you to deal
+  with them.
+  \begin{itemize}
+    \item If a value can be null
+    \item If a value might contain an error
+    \item If a value is nondeterministic
+    \item If a value depends on some kind of state
+    \item If a value may or may not exist yet
+    \item If a value has additional data associated with it
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bad?}
+  Isn't that annoying (See Go err, Java nulls, etc)?
+  \pause
+  \begin{itemize}
+    \item Use better types (NonEmpty, Don't wrap everything in Maybe, etc)
+    \item Use existing abstractions
+    \item Use generated code
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Abstractions}
+  \section*{name}
+  Foldable
+
+  \section*{When}
+  Do you want to combine everything you're wrapping into one value?
+
+  \begin{itemize}
+    \item sum
+    \item concat
+    \item and/or
+    \item any/all
+    \item max/min
+    \item find
+  \end{itemize}
+
+  \section*{What}
+  \begin{itemize}
+    \item List
+    \item Trees
+    \item Maps/Sequences
+    \item Maybe (aka null)
+    \item Either
+  \end{itemize}
+\end{frame}
+
+\end{document}
+
+\begin{frame}[fragile]{Abstractions}
+  \section*{name}
+  Functor
+
+  \section*{When}
+  Do you want to modify everything being wrapped?
+
+  \begin{itemize}
+    \item map
+    \item A whole bunch of cool things...
+  \end{itemize}
+
+  \section*{What}
+  \begin{itemize}
+    \item List
+    \item Trees
+    \item Maps
+    \item Maybe (aka null)
+    \item Either
+    \item IO
+  \end{itemize}
+\end{frame}
+
+\end{document}
+
+\begin{frame}[fragile]{Code}
+  Let's see some code...
+\end{frame}
+
+\begin{frame}[fragile]{References}
+  Recursion Schemes: https://blog.sumtypeofway.com/an-introduction-to-recursion-schemes/
+
+  An inclomplete guide to writing a window manager: https://jichu4n.com/posts/how-x-window-managers-work-and-how-to-write-one-part-ii/
+
+  An awesome, incomplete guide to how X works: https://magcius.github.io/xplain/article/
+\end{frame}
+
+\end{document}
+
+%%% Local Variables:
+%%% TeX-command-extra-options: "-shell-escape"
+%%% End:
