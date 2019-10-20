@@ -8,6 +8,30 @@ module Lib
 
 import Data.Monoid
 
+-- GHCI code for presentation
+ghci :: IO ()
+ghci = do
+  print("Hello World!")
+  print "Hello World!"
+
+  -- Just 5
+  -- Nothing
+
+  -- [1, 2, 3, 4, 5, 6, 7]
+  -- [1..7]
+  -- [1, 3..7]
+  -- [1, 3..]
+  -- sum [1..100]
+  -- and [False, False, False, True]
+  -- or [False, False, False, True]
+  -- any (< 0) [1, 5, 7, 10, -6, 0]
+  -- any (\number -> number < 0) [1, 5, 7, 10, -6, 0]
+
+  -- :t getLine
+  fmap (++ " is what you typed") getLine
+  fmap ((+1) . read) getLine
+  return ()
+
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
 type Window = Int
@@ -20,7 +44,7 @@ data Tiler
   | Wrap Window
   | InputController Int (Maybe Tiler)
   | Monitor Int (Maybe Tiler)
-  deriving (Eq, Show) -- (Functor, Foldable, etc)
+  deriving (Eq, Show, Read) -- (Functor, Foldable, etc)
 
 countWindows :: Tiler -> Int
 countWindows (Wrap window) = 1
@@ -114,6 +138,10 @@ type NewTiler = Fix TilerF
 unfix :: Fix f -> f (Fix f)
 unfix (Fix f) = f
 
+-- ??? with f a -> a , f (Fix f)
+-- function ??? :: f a
+-- function (fmap ??? initial) :: Fix f -> a
+-- function (fmap (bottomUp function) initial)
 bottomUp :: Functor f => (f a -> a) -> Fix f -> a
 bottomUp function (Fix initial) = function (fmap (bottomUp function) initial)
 

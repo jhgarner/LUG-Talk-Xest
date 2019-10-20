@@ -21,14 +21,22 @@
 \author{Jack Garner}
 \institute{CSM LUG}
 % \titlegraphic{\hfill\includegraphics[height=1.5cm]{logo.pdf}}
+\newcommand\myheading[1]{%
+  \par\bigskip
+  {\Large\bfseries#1}\par\smallskip}
 
 \begin{document}
 
 \maketitle
 
-\begin{frame}{Table of contents}
-  \setbeamertemplate{section in toc}[sections numbered]
-  \tableofcontents[hideallsubsections]
+\begin{frame}[fragile]{Wayland}
+  Lower Level protocol with better security, performance, and flexibility.
+
+  Represents the future of Linux desktops.
+
+  \pause
+  Much more complicated and relatively young.
+  \includegraphics{hsroots}
 \end{frame}
 
 \section{X11}
@@ -37,7 +45,10 @@
 \begin{frame}[fragile]{Servers}
   A server draws and communicates events with clients.
   \pause
+
   Who is a server?
+  \pause
+
   \begin{itemize}
     \item Xorg
     \item Xephyr
@@ -46,7 +57,6 @@
     \item XQuartz
     \item Xvfb
   \end{itemize}
-  \pause
 \end{frame}
 
 \begin{frame}[fragile]{Clients}
@@ -71,36 +81,29 @@
     \item Plasma
     \item i3
   \end{itemize}
-  \pause
+
+  \onslide<+->
   Almost everything is a client.
-  \pause
+  \onslide<+->
   Server side decorations?
-  \pause
+  \onslide<+->
   Xlib?
-\end{frame}
-\begin{frame}[fragile]{Wayland}
-  Lower Level protocol with better security, performance, and flexibility.
-
-  Represents the future of Linux desktops.
-
-  \pause
-  Much more complicated and relatively young.
 \end{frame}
 
 \section{Displays vs. Screens vs. Windows}
 
 \begin{frame}[fragile]{Displays}
-  \pause
   Displays are not physical displays
+
   \pause
-  :1 is the first/default display
+  :0 is the first/default display
+
   \pause
   One display can have multiple screens
 
 \end{frame}
 
 \begin{frame}[fragile]{Screens}
-  \pause
   1 screen = 1 monitor
   \begin{itemize}[<+->]
     \item Can have different color settings, dpi, resolutions, etc.
@@ -109,12 +112,13 @@
     \item Each screen has its own graphics driver running
     \item Each screen has 1 graphics card
   \end{itemize}
-  \pause
+  \onslide<+->
   (In the olden days)
 \end{frame}
 \begin{frame}[fragile]{Screens}
   Enter Xinerama
   \pause
+
   Multiple graphics cards (and displays) = 1 screen
   \begin{itemize}[<+->]
     \item None of the screen limitations exist
@@ -125,17 +129,19 @@
     \item No 3D acceleration
     \item One DPI across all monitors
   \end{itemize}
-  \pause
-  (Also old)
 \end{frame}
 \begin{frame}[fragile]{Screens}
   What's left?
   \pause
+
   Nvidia TwinView
   \pause
-  (Absolutely proprietary)
+  (proprietary)
   \pause
+
   Enter Randr
+  \onslide<+->
+
   \begin{itemize}[<+->]
     \item Single screen (like Xinerama)
     \item Provides tools for managing monitors in one screen
@@ -143,7 +149,6 @@
     \item Multiple graphics cards?
   \end{itemize}
 \end{frame}
-\pause
 \begin{frame}[fragile]{Screens}
 Enter Wayland
 \end{frame}
@@ -153,21 +158,27 @@ Enter Wayland
 \begin{frame}{The Tree}
   Windows are organized like a tree
   \pause
+
   Every X session has one window by default: The root window
   \pause
+
   New programs find the root window (using Xlib) then create themselves as
   children
   \pause
+
   Any window can have children who will follow the parent and never leave its
   bounds
   \pause
+
   \begin{itemize}
     \item Buttons
     \item Text Boxes
     \item Etc.
   \end{itemize}
+
   \pause
   Its like the Internet/DOM
+
   \pause
   (No one uses it like that anymore although toolkits like GTK still have
   remnants of it)
@@ -182,7 +193,7 @@ Enter Wayland
   \pause
   Any program can request these events on any other window.
 
-  \pause
+  \onslide<+->
   \begin{itemize}[<+->]
     \item Mouse click
     \item Keyboard click
@@ -190,7 +201,8 @@ Enter Wayland
     \item Being killed
     \item Changes to child windows
   \end{itemize}
-  \pause
+
+  \onslide<+->
   The root window doesn't have any notifications or redirects at bootup...
 \end{frame}
 \begin{frame}{Properties}
@@ -201,24 +213,30 @@ Enter Wayland
   stored.
 
   \pause
-  ICCCM (Inter-Client Communication Conventions Manual)
-  \begin{itemize}
-    \item Clipboard
-    \item Window names
-    \item Geometry
-    \item Relationship to other windows
-    \item Polite focus capture
-  \end{itemize}
-  \pause
-  EWMH (Extended Window Manager Hints)
-  \begin{itemize}
-    \item Multiple Desktops
-    \item Pager information
-    \item Polite window movement
-    \item Type/State of window
-    \item Actions others can take on a window
-    \item Pinging/killing unresponsive windows
-  \end{itemize}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      ICCCM (Inter-Client Communication Conventions Manual)
+      \begin{itemize}
+        \item Clipboard
+        \item Window names
+        \item Geometry
+        \item Relationship to other windows
+        \item Polite focus capture
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      \pause
+      EWMH (Extended Window Manager Hints)
+      \begin{itemize}
+        \item Multiple Desktops
+        \item Pager information
+        \item Polite window movement
+        \item Type/State of window
+        \item Actions others can take on a window
+        \item Pinging/killing unresponsive windows
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \section{Tying it all Together}
@@ -240,24 +258,30 @@ Enter Wayland
 
 \section{Haskell}
 \begin{frame}{A primer}
-  Python is...
-  \begin{itemize}
-    \item Dynamically typed
-    \item Scripting language
-    \item Emphasizes practicality
-    \item Provides the Pythonic way
-    \item Strict execution
-    \item Impure
-  \end{itemize}
-  Haskell is...
-  \begin{itemize}
-    \item Statically typed
-    \item Compiled language
-    \item Lots of theory (and weird names)
-    \item Provides a million ways to abstract something
-    \item Lazy evaluation
-    \item Pure
-  \end{itemize}
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      Python is \ldots
+      \begin{itemize}
+        \item Dynamically typed
+        \item Scripting language
+        \item Emphasizes practicality
+        \item Provides the Pythonic way
+        \item Strict execution
+        \item Impure
+      \end{itemize}
+    \end{column}
+    \begin{column}{.48\textwidth}
+      Haskell is \ldots
+      \begin{itemize}
+        \item Statically typed
+        \item Compiled language
+        \item Lots of theory (and weird names)
+        \item Provides a million ways to abstract something
+        \item Lazy evaluation
+        \item Pure
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{Wrapping}
@@ -284,46 +308,59 @@ Enter Wayland
 \end{frame}
 
 \begin{frame}[fragile]{Abstractions}
-  \section*{name}
+  \myheading{Name}
+
   Foldable
 
-  \section*{When}
-  Do you want to combine everything you're wrapping into one value?
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      
+      \myheading{When}
 
-  \begin{itemize}
-    \item sum
-    \item concat
-    \item and/or
-    \item any/all
-    \item max/min
-    \item find
-  \end{itemize}
+      Do you want to combine everything you're wrapping into one value?
 
-  \section*{What}
-  \begin{itemize}
-    \item List
-    \item Trees
-    \item Maps/Sequences
-    \item Maybe (aka null)
-    \item Either
-  \end{itemize}
+      \begin{itemize}
+        \item sum
+        \item concat
+        \item and/or
+        \item any/all
+        \item max/min
+        \item find
+      \end{itemize}
+
+    \end{column}
+
+    \begin{column}{.48\textwidth}
+      \myheading{What}
+      \begin{itemize}
+        \item List
+        \item Trees
+        \item Maps/Sequences
+        \item Maybe (aka null)
+        \item Either
+      \end{itemize}
+    \end{column}
+    
+  \end{columns}
 \end{frame}
 
-\end{document}
-
 \begin{frame}[fragile]{Abstractions}
-  \section*{name}
+  \myheading{Name}
   Functor
 
-  \section*{When}
-  Do you want to modify everything being wrapped?
+  \begin{columns}[T]
+    \begin{column}{.48\textwidth}
+      \myheading{When}
+      Do you want to modify everything being wrapped?
 
-  \begin{itemize}
-    \item map
-    \item A whole bunch of cool things...
-  \end{itemize}
+      \begin{itemize}
+        \item map
+        \item A whole bunch of cool things \ldots
+      \end{itemize}
+  \end{column}
 
-  \section*{What}
+    \begin{column}{.48\textwidth}
+  \myheading{What}
   \begin{itemize}
     \item List
     \item Trees
@@ -332,18 +369,30 @@ Enter Wayland
     \item Either
     \item IO
   \end{itemize}
+  \end{column}
+  \end{columns}
 \end{frame}
 
-\end{document}
+\begin{frame}[fragile]{Code}
+  Let's see some code \ldots
+\end{frame}
 
 \begin{frame}[fragile]{Code}
-  Let's see some code...
+  In summary:
+  \begin{itemize}
+    \item Least Privilage should be central to the code
+    \item Recursion schemes are game changing to how you write functional code
+    \item If you have clear semantics, writing code is a lot easier
+    \item Writing imperitive code in Haskell is pretty nice
+    \item The standard library made questionable decisions
+    \item There are still tons of experimentations/improvemnts I want to make
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{References}
   Recursion Schemes: https://blog.sumtypeofway.com/an-introduction-to-recursion-schemes/
 
-  An inclomplete guide to writing a window manager: https://jichu4n.com/posts/how-x-window-managers-work-and-how-to-write-one-part-ii/
+  An incomplete guide to writing a window manager: https://jichu4n.com/posts/how-x-window-managers-work-and-how-to-write-one-part-ii/
 
   An awesome, incomplete guide to how X works: https://magcius.github.io/xplain/article/
 \end{frame}
